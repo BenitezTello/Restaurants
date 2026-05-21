@@ -1,0 +1,54 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { AuthUser, UserRole } from '@/types/auth';
+
+interface AuthState {
+  user: AuthUser | null;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  setUser: (user: AuthUser) => void;
+  logout: () => void;
+  hasRole: (role: UserRole) => boolean;
+  isAdmin: () => boolean;
+  isOwner: () => boolean;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+
+      setUser: (user) =>
+        set({
+          user,
+          accessToken: user.accessToken,
+          isAuthenticated: true,
+        }),
+
+      logout: () =>
+        set({
+          user: null,
+          accessToken: null,
+          isAuthenticated: false,
+        }),
+
+      hasRole: (role) => get().user?.role === role,
+
+      isAdmin: () => get().user?.role === 'ADMIN',
+
+      isOwner: () =>
+        get().user?.role === 'ADMIN' || get().user?.role === 'RESTAURANTE_OWNER',
+    }),
+    {
+      name: 'restaurants-auth',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);
