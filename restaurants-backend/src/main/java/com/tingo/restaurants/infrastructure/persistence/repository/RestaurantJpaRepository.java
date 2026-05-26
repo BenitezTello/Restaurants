@@ -48,15 +48,15 @@ public interface RestaurantJpaRepository extends JpaRepository<RestaurantEntity,
 
     @Query(value = """
         SELECT r.*, ST_Distance(
-            r.geolocation::geography,
-            ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
+            CAST(r.geolocation AS geography),
+            CAST(ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326) AS geography)
         ) / 1000 AS distance_km
         FROM restaurants r
         WHERE r.deleted_at IS NULL
           AND r.status = 'ACTIVE'
           AND ST_DWithin(
-              r.geolocation::geography,
-              ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
+              CAST(r.geolocation AS geography),
+              CAST(ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326) AS geography),
               :radiusMeters
           )
         ORDER BY distance_km ASC
