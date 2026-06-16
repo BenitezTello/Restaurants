@@ -30,8 +30,14 @@ export default function LoginPage() {
       toast.success(`Bienvenido, ${data.fullName}!`);
       router.push('/dashboard');
     },
-    onError: () => {
-      toast.error('Credenciales inválidas. Verifica tu email y contraseña.');
+    onError: (error: any) => {
+      if (!error?.response) {
+        toast.error('No se puede conectar al servidor. Espera unos segundos y vuelve a intentarlo.');
+      } else if (error.response.status === 401) {
+        toast.error('Email o contraseña incorrectos.');
+      } else {
+        toast.error('Error al iniciar sesión. Intenta de nuevo.');
+      }
     },
   });
 

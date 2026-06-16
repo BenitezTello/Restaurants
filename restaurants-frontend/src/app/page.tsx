@@ -96,7 +96,7 @@ export default function HomePage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-500/20 text-orange-500 mb-5 group-hover:scale-110 group-hover:bg-orange-200 dark:group-hover:bg-orange-500/30 transition-all duration-300">
                 <UtensilsCrossed className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Soy turista o cliente</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Soy cliente</h3>
               <p className="text-sm text-gray-500 dark:text-zinc-400 leading-relaxed mb-6">
                 Explora restaurantes verificados, consulta menús y haz tu reserva en segundos.
               </p>
