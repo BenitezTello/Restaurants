@@ -1,6 +1,7 @@
 package com.tingo.restaurants.application.service;
 
 import com.tingo.restaurants.application.dto.request.CreateDishRequest;
+import com.tingo.restaurants.application.dto.request.UpdateDishRequest;
 import com.tingo.restaurants.application.dto.response.DishResponse;
 import com.tingo.restaurants.domain.exception.DomainException;
 import com.tingo.restaurants.domain.model.Dish;
@@ -58,6 +59,52 @@ public class DishService {
 
     public List<DishResponse> findByMenu(UUID menuId) {
         return dishRepository.findByMenuId(menuId).stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    public DishResponse findById(UUID dishId) {
+        return dishRepository.findById(dishId)
+                .map(this::toResponse)
+                .orElseThrow(() -> new DomainException("Plato no encontrado", "DISH_NOT_FOUND") {});
+    }
+
+    @Transactional
+    public DishResponse update(UUID dishId, UpdateDishRequest request) {
+        Dish existing = dishRepository.findById(dishId)
+                .orElseThrow(() -> new DomainException("Plato no encontrado", "DISH_NOT_FOUND") {});
+
+        Dish.DishBuilder builder = existing.toBuilder().updatedAt(LocalDateTime.now());
+        if (request.getName() != null) builder.name(request.getName());
+        if (request.getDescription() != null) builder.description(request.getDescription());
+        if (request.getCategory() != null) builder.category(request.getCategory());
+        if (request.getPrice() != null) builder.price(request.getPrice());
+        if (request.getPreparationTime() != null) builder.preparationTime(request.getPreparationTime());
+        if (request.getCalories() != null) builder.calories(request.getCalories());
+        if (request.getImageUrl() != null) builder.imageUrl(request.getImageUrl());
+        if (request.getAvailable() != null) builder.isAvailable(request.getAvailable());
+        if (request.getFeatured() != null) builder.isFeatured(request.getFeatured());
+        if (request.getVegetarian() != null) builder.isVegetarian(request.getVegetarian());
+        if (request.getVegan() != null) builder.isVegan(request.getVegan());
+        if (request.getGlutenFree() != null) builder.isGlutenFree(request.getGlutenFree());
+        if (request.getAllergens() != null) builder.allergens(request.getAllergens());
+
+        Dish saved = dishRepository.save(builder.build());
+        log.info("Plato actualizado: {}", saved.getId());
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public DishResponse toggleAvailability(UUID dishId) {
+        Dish existing = dishRepository.findById(dishId)
+                .orElseThrow(() -> new DomainException("Plato no encontrado", "DISH_NOT_FOUND") {});
+
+        Dish toggled = existing.toBuilder()
+                .isAvailable(!existing.isAvailable())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        Dish saved = dishRepository.save(toggled);
+        log.info("Plato {} disponibilidad cambiada a: {}", saved.getId(), saved.isAvailable());
+        return toResponse(saved);
     }
 
     @Transactional

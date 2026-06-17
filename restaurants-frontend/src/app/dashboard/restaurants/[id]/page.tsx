@@ -10,6 +10,8 @@ import { cn } from '@/utils/cn';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
+import { ScheduleEditor } from '@/components/ui/ScheduleEditor';
+import { PhotoManager } from '@/components/ui/PhotoManager';
 import toast from 'react-hot-toast';
 import type { RestaurantStatus } from '@/types/restaurant';
 
@@ -246,6 +248,12 @@ export default function RestaurantDetailDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Gestión del dueño: horarios y galería (S2-02 / S2-03) */}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ScheduleEditor restaurantId={id} />
+        <PhotoManager restaurantId={id} />
       </div>
     </div>
   );

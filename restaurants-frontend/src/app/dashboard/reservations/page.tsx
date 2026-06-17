@@ -1,12 +1,14 @@
 'use client';
 
-import { Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, CheckCheck, UserX, Star } from 'lucide-react';
 import { useState } from 'react';
 import {
   useMyReservations,
   useRestaurantReservations,
   useCancelReservation,
   useConfirmReservation,
+  useCompleteReservation,
+  useNoShowReservation,
 } from '@/hooks/useReservations';
 import { useMyRestaurants, useRestaurants } from '@/hooks/useRestaurants';
 import { useAuthStore } from '@/store/authStore';
@@ -15,21 +17,32 @@ import { formatDate, formatTime, STATUS_LABELS, STATUS_COLORS } from '@/utils/fo
 import { cn } from '@/utils/cn';
 import toast from 'react-hot-toast';
 import type { Reservation } from '@/types/reservation';
+import { RatingModal } from '@/components/ui/RatingModal';
+import { useRatings } from '@/hooks/useRatings';
 
 function ReservationRow({
   res,
   canManage,
   onConfirm,
   onCancel,
+  onComplete,
+  onNoShow,
   confirmPending,
   cancelPending,
+  completePending,
+  noShowPending,
 }: {
   res: Reservation;
   canManage: boolean;
   onConfirm: (id: string) => void;
   onCancel: (id: string) => void;
+  onComplete: (id: string) => void;
+  onNoShow: (id: string) => void;
+  onReview?: (id: string) => void;
   confirmPending: boolean;
   cancelPending: boolean;
+  completePending: boolean;
+  noShowPending: boolean;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between gap-4">
@@ -70,6 +83,25 @@ function ReservationRow({
           </button>
         )}
 
+        {canManage && res.status === 'CONFIRMED' && (
+          <>
+            <button
+              onClick={() => onComplete(res.id)}
+              disabled={completePending}
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60"
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> Completar
+            </button>
+            <button
+              onClick={() => onNoShow(res.id)}
+              disabled={noShowPending}
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60"
+            >
+              <UserX className="h-3.5 w-3.5" /> No se presentó
+            </button>
+          </>
+        )}
+
         {(res.status === 'PENDING' || res.status === 'CONFIRMED') && (
           <button
             onClick={() => onCancel(res.id)}
@@ -77,6 +109,15 @@ function ReservationRow({
             className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60"
           >
             <XCircle className="h-3.5 w-3.5" /> Cancelar
+          </button>
+        )}
+
+        {!canManage && res.status === 'COMPLETED' && onReview && (
+          <button
+            onClick={() => onReview(res.id)}
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition-colors"
+          >
+            <Star className="h-3.5 w-3.5" /> Dejar reseña
           </button>
         )}
       </div>
@@ -89,7 +130,13 @@ export default function ReservationsPage() {
   const isAdmin = useAuthStore((s) => s.isAdmin());
   const cancelMutation = useCancelReservation();
   const confirmMutation = useConfirmReservation();
+  const completeMutation = useCompleteReservation();
+  const noShowMutation = useNoShowReservation();
   const [restaurantId, setRestaurantId] = useState('');
+  const { createRating, loading: ratingLoading } = useRatings();
+  
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewReservationId, setReviewReservationId] = useState('');
 
   // Para owners/admins: selector de restaurante + reservas por restaurante
   const { data: myRestaurants } = useMyRestaurants();
@@ -120,12 +167,53 @@ export default function ReservationsPage() {
     }
   };
 
+  const handleComplete = async (id: string) => {
+    try {
+      await completeMutation.mutateAsync(id);
+      toast.success('Reserva marcada como completada');
+    } catch {
+      toast.error('Error al completar la reserva');
+    }
+  };
+
+  const handleNoShow = async (id: string) => {
+    try {
+      await noShowMutation.mutateAsync(id);
+      toast.success('Reserva marcada como no-show');
+    } catch {
+      toast.error('Error al marcar no-show');
+    }
+  };
+
+  const handleOpenReview = (id: string) => {
+    setReviewReservationId(id);
+    setReviewModalOpen(true);
+  };
+
+  const handleSubmitReview = async (data: any) => {
+    try {
+      await createRating({
+        reservationId: reviewReservationId,
+        ...data
+      });
+      toast.success('Reseña publicada exitosamente');
+      setReviewModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al publicar reseña');
+    }
+  };
+
   const rowProps = {
     canManage: isOwner || isAdmin,
     onConfirm: handleConfirm,
     onCancel: handleCancel,
+    onComplete: handleComplete,
+    onNoShow: handleNoShow,
+    onReview: handleOpenReview,
     confirmPending: confirmMutation.isPending,
     cancelPending: cancelMutation.isPending,
+    completePending: completeMutation.isPending,
+    noShowPending: noShowMutation.isPending,
   };
 
   // ── Vista OWNER / ADMIN ──────────────────────────────────────
@@ -191,6 +279,13 @@ export default function ReservationsPage() {
           {reservations.map((res) => <ReservationRow key={res.id} res={res} {...rowProps} />)}
         </div>
       )}
+
+      <RatingModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        onSubmit={handleSubmitReview}
+        loading={ratingLoading}
+      />
     </div>
   );
 }

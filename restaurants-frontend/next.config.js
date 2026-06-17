@@ -2,6 +2,10 @@
 const nextConfig = {
   output: "standalone",
   images: {
+    // Los dueños pegan URLs de imágenes de cualquier dominio (gallery, cover,
+    // logo, platos). Desactivar la optimización evita tener que whitelistear
+    // cada host en `images.domains` y permite cargar cualquier URL pública.
+    unoptimized: true,
     domains: ["localhost", "api.tingo-restaurants.com"],
     formats: ["image/avif", "image/webp"],
   },

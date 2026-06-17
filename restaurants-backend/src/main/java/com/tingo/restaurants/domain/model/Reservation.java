@@ -12,7 +12,7 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reservation {
@@ -115,6 +115,26 @@ public class Reservation {
                 .cancelledAt(LocalDateTime.now())
                 .cancellationReason(reason)
                 .createdAt(this.createdAt)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public Reservation complete() {
+        if (status != ReservationStatus.CONFIRMED) {
+            throw new IllegalStateException("Solo se puede completar una reserva CONFIRMED (estado actual: " + status + ")");
+        }
+        return this.toBuilder()
+                .status(ReservationStatus.COMPLETED)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public Reservation markNoShow() {
+        if (status != ReservationStatus.CONFIRMED) {
+            throw new IllegalStateException("Solo se puede marcar no-show desde CONFIRMED (estado actual: " + status + ")");
+        }
+        return this.toBuilder()
+                .status(ReservationStatus.NO_SHOW)
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
