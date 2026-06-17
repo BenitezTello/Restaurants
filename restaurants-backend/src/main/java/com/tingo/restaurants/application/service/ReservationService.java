@@ -117,6 +117,24 @@ public class ReservationService {
         return reservationMapper.toResponse(saved);
     }
 
+    @Transactional
+    public ReservationResponse completeReservation(UUID id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ReservationException("Reserva no encontrada"));
+        Reservation completed = reservation.complete();
+        log.info("Reserva {} marcada como COMPLETED", completed.getConfirmationCode());
+        return reservationMapper.toResponse(reservationRepository.save(completed));
+    }
+
+    @Transactional
+    public ReservationResponse markNoShow(UUID id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ReservationException("Reserva no encontrada"));
+        Reservation noShow = reservation.markNoShow();
+        log.info("Reserva {} marcada como NO_SHOW", noShow.getConfirmationCode());
+        return reservationMapper.toResponse(reservationRepository.save(noShow));
+    }
+
     public ReservationResponse findByConfirmationCode(String code) {
         return reservationRepository.findByConfirmationCode(code)
                 .map(reservationMapper::toResponse)

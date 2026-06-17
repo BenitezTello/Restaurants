@@ -89,4 +89,20 @@ public class ReservationController {
             @RequestParam(required = false, defaultValue = "Cancelada por el usuario") String reason) {
         return ResponseEntity.ok(ApiResponse.ok("Reserva cancelada", reservationService.cancel(id, reason)));
     }
+
+    @PatchMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Marcar reserva como completada (el cliente asistió)")
+    public ResponseEntity<ApiResponse<ReservationResponse>> complete(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok("Reserva completada", reservationService.completeReservation(id)));
+    }
+
+    @PatchMapping("/{id}/no-show")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Marcar reserva como no-show (el cliente no se presentó)")
+    public ResponseEntity<ApiResponse<ReservationResponse>> noShow(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok("Reserva marcada como no-show", reservationService.markNoShow(id)));
+    }
 }

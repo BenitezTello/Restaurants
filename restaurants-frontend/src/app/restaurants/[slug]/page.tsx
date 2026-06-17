@@ -92,9 +92,18 @@ export default function RestaurantDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Cover */}
-      <div className="relative h-72 bg-gradient-to-br from-orange-100 to-orange-200">
+      <div className="relative h-72 bg-gradient-to-br from-orange-100 to-orange-200 overflow-hidden">
         {restaurant.coverImageUrl ? (
-          <Image src={restaurant.coverImageUrl} alt={restaurant.name} fill className="object-cover" />
+          <>
+            {/* Hero difuminado: portadas de baja resolución lucen como fondo intencional */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={restaurant.coverImageUrl}
+              alt={restaurant.name}
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-[6px]"
+            />
+            <div className="absolute inset-0 bg-black/30" />
+          </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center opacity-20"><UtensilsCrossed className="h-32 w-32 text-orange-300" /></div>
         )}

@@ -62,3 +62,23 @@ export function useCancelReservation() {
     },
   });
 }
+
+export function useCompleteReservation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => reservationService.complete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RESERVATION_KEYS.all });
+    },
+  });
+}
+
+export function useNoShowReservation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => reservationService.markNoShow(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RESERVATION_KEYS.all });
+    },
+  });
+}

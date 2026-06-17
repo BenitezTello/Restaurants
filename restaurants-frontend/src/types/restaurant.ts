@@ -11,6 +11,18 @@ export interface Schedule {
   isClosed: boolean;
 }
 
+export interface ScheduleInput {
+  dayOfWeek: DayOfWeek;
+  openingTime: string | null;
+  closingTime: string | null;
+  isClosed: boolean;
+}
+
+export interface ImageReorderItem {
+  id: string;
+  displayOrder: number;
+}
+
 export interface Restaurant {
   id: string;
   name: string;

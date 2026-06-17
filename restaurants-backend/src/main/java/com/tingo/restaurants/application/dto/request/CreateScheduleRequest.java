@@ -1,5 +1,6 @@
 package com.tingo.restaurants.application.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,6 @@ public class CreateScheduleRequest {
 
     private LocalTime closingTime;
 
+    @JsonProperty("isClosed")
     private boolean isClosed = false;
 }

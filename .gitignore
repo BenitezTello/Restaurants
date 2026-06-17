@@ -25,6 +25,10 @@ logs/
 **/logs/
 *.log
 
+# Documentación interna de Claude Code (no subir)
+CLAUDE.md
+**/CLAUDE.md
+
 # Configuraciones de editores y sistemas operativos
 .vscode/
 .idea/

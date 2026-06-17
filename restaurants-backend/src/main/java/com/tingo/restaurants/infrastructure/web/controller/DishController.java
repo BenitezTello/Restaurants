@@ -1,6 +1,7 @@
 package com.tingo.restaurants.infrastructure.web.controller;
 
 import com.tingo.restaurants.application.dto.request.CreateDishRequest;
+import com.tingo.restaurants.application.dto.request.UpdateDishRequest;
 import com.tingo.restaurants.application.dto.response.ApiResponse;
 import com.tingo.restaurants.application.dto.response.DishResponse;
 import com.tingo.restaurants.application.service.DishService;
@@ -39,6 +40,30 @@ public class DishController {
     @Operation(summary = "Obtener platos de un menú (público)")
     public ResponseEntity<ApiResponse<List<DishResponse>>> findByMenu(@PathVariable UUID menuId) {
         return ResponseEntity.ok(ApiResponse.ok(dishService.findByMenu(menuId)));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener detalle de un plato (público)")
+    public ResponseEntity<ApiResponse<DishResponse>> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok(dishService.findById(id)));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Actualizar plato (parcial)")
+    public ResponseEntity<ApiResponse<DishResponse>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateDishRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Plato actualizado", dishService.update(id, request)));
+    }
+
+    @PatchMapping("/{id}/availability")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Activar/desactivar disponibilidad del plato")
+    public ResponseEntity<ApiResponse<DishResponse>> toggleAvailability(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok("Disponibilidad actualizada", dishService.toggleAvailability(id)));
     }
 
     @DeleteMapping("/{id}")

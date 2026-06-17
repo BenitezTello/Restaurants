@@ -32,4 +32,12 @@ export const reservationService = {
       await api.patch(`/v1/reservations/${id}/cancel`, null, { params: { reason } })
     );
   },
+
+  async complete(id: string) {
+    return extractData<Reservation>(await api.patch(`/v1/reservations/${id}/complete`));
+  },
+
+  async markNoShow(id: string) {
+    return extractData<Reservation>(await api.patch(`/v1/reservations/${id}/no-show`));
+  },
 };

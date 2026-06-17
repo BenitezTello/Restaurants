@@ -1,5 +1,5 @@
 import { api, extractData } from './api';
-import type { Restaurant, CreateRestaurantDto, Menu, Dish, Promotion, RestaurantImage, RatingResponse, RatingStatsResponse } from '@/types/restaurant';
+import type { Restaurant, CreateRestaurantDto, Menu, Dish, Promotion, RestaurantImage, RatingResponse, RatingStatsResponse, Schedule, ScheduleInput, ImageReorderItem } from '@/types/restaurant';
 import type { PagedResponse } from '@/types/auth';
 
 export const restaurantService = {
@@ -87,5 +87,27 @@ export const restaurantService = {
 
   async getPromotions(restaurantId: string) {
     return extractData<Promotion[]>(await api.get(`/v1/promotions/restaurant/${restaurantId}`));
+  },
+
+  // ── Horarios (S2-02) ──────────────────────────────────────────
+  async getSchedules(restaurantId: string) {
+    return extractData<Schedule[]>(await api.get(`/v1/restaurants/${restaurantId}/schedules`));
+  },
+
+  async updateSchedules(restaurantId: string, schedules: ScheduleInput[]) {
+    return extractData<Schedule[]>(await api.put(`/v1/restaurants/${restaurantId}/schedules`, schedules));
+  },
+
+  // ── Galería de fotos (S2-03) ──────────────────────────────────
+  async addImage(restaurantId: string, data: { url: string; caption?: string; displayOrder?: number }) {
+    return extractData<RestaurantImage>(await api.post(`/v1/restaurants/${restaurantId}/images`, data));
+  },
+
+  async deleteImage(restaurantId: string, imageId: string) {
+    return api.delete(`/v1/restaurants/${restaurantId}/images/${imageId}`);
+  },
+
+  async reorderImages(restaurantId: string, items: ImageReorderItem[]) {
+    return extractData<RestaurantImage[]>(await api.patch(`/v1/restaurants/${restaurantId}/images/reorder`, items));
   },
 };

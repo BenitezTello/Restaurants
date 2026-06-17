@@ -1,12 +1,14 @@
 'use client';
 
-import { Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, CheckCheck, UserX } from 'lucide-react';
 import { useState } from 'react';
 import {
   useMyReservations,
   useRestaurantReservations,
   useCancelReservation,
   useConfirmReservation,
+  useCompleteReservation,
+  useNoShowReservation,
 } from '@/hooks/useReservations';
 import { useMyRestaurants, useRestaurants } from '@/hooks/useRestaurants';
 import { useAuthStore } from '@/store/authStore';
@@ -21,15 +23,23 @@ function ReservationRow({
   canManage,
   onConfirm,
   onCancel,
+  onComplete,
+  onNoShow,
   confirmPending,
   cancelPending,
+  completePending,
+  noShowPending,
 }: {
   res: Reservation;
   canManage: boolean;
   onConfirm: (id: string) => void;
   onCancel: (id: string) => void;
+  onComplete: (id: string) => void;
+  onNoShow: (id: string) => void;
   confirmPending: boolean;
   cancelPending: boolean;
+  completePending: boolean;
+  noShowPending: boolean;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between gap-4">
@@ -70,6 +80,25 @@ function ReservationRow({
           </button>
         )}
 
+        {canManage && res.status === 'CONFIRMED' && (
+          <>
+            <button
+              onClick={() => onComplete(res.id)}
+              disabled={completePending}
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60"
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> Completar
+            </button>
+            <button
+              onClick={() => onNoShow(res.id)}
+              disabled={noShowPending}
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60"
+            >
+              <UserX className="h-3.5 w-3.5" /> No se presentó
+            </button>
+          </>
+        )}
+
         {(res.status === 'PENDING' || res.status === 'CONFIRMED') && (
           <button
             onClick={() => onCancel(res.id)}
@@ -89,6 +118,8 @@ export default function ReservationsPage() {
   const isAdmin = useAuthStore((s) => s.isAdmin());
   const cancelMutation = useCancelReservation();
   const confirmMutation = useConfirmReservation();
+  const completeMutation = useCompleteReservation();
+  const noShowMutation = useNoShowReservation();
   const [restaurantId, setRestaurantId] = useState('');
 
   // Para owners/admins: selector de restaurante + reservas por restaurante
@@ -120,12 +151,34 @@ export default function ReservationsPage() {
     }
   };
 
+  const handleComplete = async (id: string) => {
+    try {
+      await completeMutation.mutateAsync(id);
+      toast.success('Reserva marcada como completada');
+    } catch {
+      toast.error('Error al completar la reserva');
+    }
+  };
+
+  const handleNoShow = async (id: string) => {
+    try {
+      await noShowMutation.mutateAsync(id);
+      toast.success('Reserva marcada como no-show');
+    } catch {
+      toast.error('Error al marcar no-show');
+    }
+  };
+
   const rowProps = {
     canManage: isOwner || isAdmin,
     onConfirm: handleConfirm,
     onCancel: handleCancel,
+    onComplete: handleComplete,
+    onNoShow: handleNoShow,
     confirmPending: confirmMutation.isPending,
     cancelPending: cancelMutation.isPending,
+    completePending: completeMutation.isPending,
+    noShowPending: noShowMutation.isPending,
   };
 
   // ── Vista OWNER / ADMIN ──────────────────────────────────────

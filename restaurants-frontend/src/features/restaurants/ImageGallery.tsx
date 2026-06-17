@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, Images } from 'lucide-react';
 import { useRestaurantImages } from '@/hooks/useRestaurants';
 
@@ -49,12 +48,11 @@ function Lightbox({ images, index, onClose }: {
         onClick={e => e.stopPropagation()}
       >
         <div className="relative w-full" style={{ paddingBottom: '60%' }}>
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={images[current].url}
             alt={images[current].caption ?? ''}
-            fill
-            className="object-contain"
-            sizes="(max-width: 768px) 100vw, 80vw"
+            className="absolute inset-0 w-full h-full object-contain"
           />
         </div>
         {images[current].caption && (
@@ -72,31 +70,32 @@ export function ImageGallery({ restaurantId }: { restaurantId: string }) {
   const { data: images } = useRestaurantImages(restaurantId);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  if (!images || images.length === 0) return null;
+  // La imagen #0 es la portada (header/tarjeta); aquí abajo van las demás.
+  const rest = images ? images.slice(1) : [];
+  if (rest.length === 0) return null;
 
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
         <h2 className="font-display text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4 flex items-center gap-2">
-          <Images className="h-5 w-5 text-orange-500" /> Galería
+          <Images className="h-5 w-5 text-orange-500" /> Fotos del lugar
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {images.slice(0, 6).map((img, i) => (
+          {rest.slice(0, 6).map((img, i) => (
             <button
               key={img.id}
               onClick={() => setLightboxIndex(i)}
               className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity group"
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={img.url}
                 alt={img.caption ?? `Foto ${i + 1}`}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 640px) 50vw, 33vw"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              {i === 5 && images.length > 6 && (
+              {i === 5 && rest.length > 6 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white font-semibold text-lg">+{images.length - 6}</span>
+                  <span className="text-white font-semibold text-lg">+{rest.length - 6}</span>
                 </div>
               )}
             </button>
@@ -106,7 +105,7 @@ export function ImageGallery({ restaurantId }: { restaurantId: string }) {
 
       {lightboxIndex !== null && (
         <Lightbox
-          images={images}
+          images={rest}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
         />
