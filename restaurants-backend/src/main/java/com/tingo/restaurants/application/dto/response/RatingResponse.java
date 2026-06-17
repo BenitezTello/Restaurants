@@ -1,6 +1,7 @@
 package com.tingo.restaurants.application.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,6 +19,7 @@ public class RatingResponse {
     private Integer foodScore;
     private Integer serviceScore;
     private Integer ambianceScore;
+    @JsonProperty("isVerified")
     private boolean isVerified;
     private LocalDateTime createdAt;
 }

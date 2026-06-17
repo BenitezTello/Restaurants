@@ -58,11 +58,10 @@ public class RatingRepositoryAdapter implements RatingRepository {
     public RatingStatsResponse getStatsByRestaurantId(UUID restaurantId) {
         long total = ratingJpaRepository.countByRestaurantId(restaurantId);
 
-        Object[] avgs = ratingJpaRepository.getAveragesByRestaurantId(restaurantId);
-        double avgScore = avgs[0] != null ? ((Number) avgs[0]).doubleValue() : 0.0;
-        Double avgFood = avgs[1] != null ? ((Number) avgs[1]).doubleValue() : null;
-        Double avgService = avgs[2] != null ? ((Number) avgs[2]).doubleValue() : null;
-        Double avgAmbiance = avgs[3] != null ? ((Number) avgs[3]).doubleValue() : null;
+        Double avgScore = ratingJpaRepository.getAvgScore(restaurantId);
+        Double avgFood = ratingJpaRepository.getAvgFoodScore(restaurantId);
+        Double avgService = ratingJpaRepository.getAvgServiceScore(restaurantId);
+        Double avgAmbiance = ratingJpaRepository.getAvgAmbianceScore(restaurantId);
 
         Map<Integer, Long> distribution = new LinkedHashMap<>();
         for (int i = 5; i >= 1; i--) {
@@ -70,7 +69,7 @@ public class RatingRepositoryAdapter implements RatingRepository {
         }
 
         return RatingStatsResponse.builder()
-                .avgScore(avgScore)
+                .avgScore(avgScore != null ? avgScore : 0.0)
                 .avgFoodScore(avgFood)
                 .avgServiceScore(avgService)
                 .avgAmbianceScore(avgAmbiance)

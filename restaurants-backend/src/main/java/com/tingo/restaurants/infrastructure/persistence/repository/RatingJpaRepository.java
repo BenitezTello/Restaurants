@@ -17,9 +17,15 @@ public interface RatingJpaRepository extends JpaRepository<RatingEntity, UUID> {
 
     long countByRestaurantIdAndScore(UUID restaurantId, int score);
 
-    @Query("""
-        SELECT AVG(r.score), AVG(r.foodScore), AVG(r.serviceScore), AVG(r.ambianceScore)
-        FROM RatingEntity r WHERE r.restaurantId = :restaurantId
-    """)
-    Object[] getAveragesByRestaurantId(@Param("restaurantId") UUID restaurantId);
+    @Query("SELECT AVG(r.score) FROM RatingEntity r WHERE r.restaurantId = :restaurantId")
+    Double getAvgScore(@Param("restaurantId") UUID restaurantId);
+
+    @Query("SELECT AVG(r.foodScore) FROM RatingEntity r WHERE r.restaurantId = :restaurantId")
+    Double getAvgFoodScore(@Param("restaurantId") UUID restaurantId);
+
+    @Query("SELECT AVG(r.serviceScore) FROM RatingEntity r WHERE r.restaurantId = :restaurantId")
+    Double getAvgServiceScore(@Param("restaurantId") UUID restaurantId);
+
+    @Query("SELECT AVG(r.ambianceScore) FROM RatingEntity r WHERE r.restaurantId = :restaurantId")
+    Double getAvgAmbianceScore(@Param("restaurantId") UUID restaurantId);
 }
