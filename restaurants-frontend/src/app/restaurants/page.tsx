@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, MapPin, UtensilsCrossed, Navigation, X } from 'lucide-react';
+import { Search, MapPin, UtensilsCrossed, Navigation, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchRestaurants, useNearbyRestaurants } from '@/hooks/useRestaurants';
 import { RestaurantCard, RestaurantCardSkeleton } from '@/features/restaurants/RestaurantCard';
@@ -69,6 +69,10 @@ export default function RestaurantsPublicPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-500 py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm mb-4 transition-colors animate-slide-up">
+            <ArrowLeft className="h-4 w-4" />
+            Inicio
+          </Link>
           <div className="flex items-center gap-2 text-orange-200 mb-3 animate-slide-up">
             <MapPin className="h-4 w-4" />
             <span className="text-sm">Tingo María, Huánuco</span>
