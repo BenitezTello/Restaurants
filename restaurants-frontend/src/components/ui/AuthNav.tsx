@@ -55,13 +55,17 @@ export function AuthNav() {
 
   return (
     <div className="flex items-center gap-2">
-      <Link href="/login" className={ghost}>
+      <Link href="/login" className={ghost} title="Los clientes ingresan con su cuenta de Google">
         <LogIn className="h-4 w-4" />
         Iniciar Sesión
       </Link>
-      <Link href="/register" className={solid}>
+      <Link
+        href="/register"
+        className={solid}
+        title="El registro es solo para restaurantes. Si eres cliente, ingresa con Google."
+      >
         <UserPlus className="h-4 w-4" />
-        Registrarse
+        Registrar <span className="hidden sm:inline">restaurante</span>
       </Link>
     </div>
   );
