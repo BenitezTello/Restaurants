@@ -68,6 +68,22 @@ public class PromotionService {
         promotionRepository.deleteById(id);
     }
 
+    @Transactional
+    public PromotionResponse toggleActive(UUID id) {
+        Promotion p = promotionRepository.findById(id)
+                .orElseThrow(() -> new DomainException("Promoción no encontrada", "PROMOTION_NOT_FOUND") {});
+        ownershipGuard.assertOwnsRestaurant(p.getRestaurantId());
+        Promotion updated = Promotion.builder()
+                .id(p.getId()).restaurantId(p.getRestaurantId()).title(p.getTitle())
+                .description(p.getDescription()).promoType(p.getPromoType()).discountValue(p.getDiscountValue())
+                .minOrderAmount(p.getMinOrderAmount()).promoCode(p.getPromoCode()).imageUrl(p.getImageUrl())
+                .validFrom(p.getValidFrom()).validUntil(p.getValidUntil()).isActive(!p.isActive())
+                .usageLimit(p.getUsageLimit()).usageCount(p.getUsageCount())
+                .createdAt(p.getCreatedAt()).updatedAt(LocalDateTime.now())
+                .build();
+        return toResponse(promotionRepository.save(updated));
+    }
+
     private PromotionResponse toResponse(Promotion p) {
         return PromotionResponse.builder()
                 .id(p.getId()).restaurantId(p.getRestaurantId()).title(p.getTitle())

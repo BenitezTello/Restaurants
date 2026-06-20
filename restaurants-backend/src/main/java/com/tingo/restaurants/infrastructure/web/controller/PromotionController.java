@@ -60,6 +60,14 @@ public class PromotionController {
         return ResponseEntity.ok(ApiResponse.ok(promotionService.findActiveByRestaurant(restaurantId)));
     }
 
+    @PatchMapping("/{id}/toggle")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Activar / desactivar una promoción")
+    public ResponseEntity<ApiResponse<PromotionResponse>> toggle(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok("Estado actualizado", promotionService.toggleActive(id)));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
     @SecurityRequirement(name = "bearerAuth")

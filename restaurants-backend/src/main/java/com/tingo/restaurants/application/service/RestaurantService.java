@@ -6,6 +6,7 @@ import com.tingo.restaurants.application.dto.response.RestaurantResponse;
 import com.tingo.restaurants.application.dto.response.ScheduleResponse;
 import com.tingo.restaurants.application.mapper.RestaurantMapper;
 import com.tingo.restaurants.domain.exception.RestaurantNotFoundException;
+import com.tingo.restaurants.domain.model.FoodCategory;
 import com.tingo.restaurants.domain.model.Restaurant;
 import com.tingo.restaurants.domain.model.Schedule;
 import com.tingo.restaurants.domain.model.enums.RestaurantStatus;
@@ -67,6 +68,7 @@ public class RestaurantService {
                 .hasWifi(request.isHasWifi())
                 .hasAirConditioning(request.isHasAirConditioning())
                 .isAccessible(request.isAccessible())
+                .categories(toCategories(request.getCategoryIds()))
                 .avgRating(BigDecimal.ZERO)
                 .totalRatings(0)
                 .build();
@@ -107,9 +109,9 @@ public class RestaurantService {
     }
 
     public PagedResponse<RestaurantResponse> search(String name, String city,
-                                                     String category, Pageable pageable) {
+                                                     String categoryId, String priceRange, Pageable pageable) {
         Page<RestaurantResponse> page = restaurantRepository
-                .findByFilters(name, city, category, RestaurantStatus.ACTIVE, pageable)
+                .findByFilters(name, city, categoryId, priceRange, RestaurantStatus.ACTIVE, pageable)
                 .map(restaurantMapper::toResponse);
         return PagedResponse.from(page);
     }
@@ -173,6 +175,7 @@ public class RestaurantService {
                 .longitude(request.getLongitude())
                 .totalCapacity(request.getTotalCapacity())
                 .priceLevel(request.getPriceLevel() != null ? request.getPriceLevel() : existing.getPriceLevel())
+                .avgDishPrice(existing.getAvgDishPrice())
                 .minReservationSize(request.getMinReservationSize())
                 .maxReservationSize(request.getMaxReservationSize())
                 .coverImageUrl(request.getCoverImageUrl())
@@ -183,9 +186,19 @@ public class RestaurantService {
                 .hasWifi(request.isHasWifi())
                 .hasAirConditioning(request.isHasAirConditioning())
                 .isAccessible(request.isAccessible())
+                .categories(toCategories(request.getCategoryIds()))
                 .build();
 
         return restaurantMapper.toResponse(restaurantRepository.save(updated));
+    }
+
+    /** Convierte una lista de ids de categoría en modelos de dominio (solo el id; el adapter resuelve la entidad). */
+    private List<FoodCategory> toCategories(List<UUID> categoryIds) {
+        if (categoryIds == null) return List.of();
+        return categoryIds.stream()
+                .filter(java.util.Objects::nonNull)
+                .map(id -> FoodCategory.builder().id(id).build())
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -212,6 +225,7 @@ public class RestaurantService {
                 .longitude(restaurant.getLongitude())
                 .totalCapacity(restaurant.getTotalCapacity())
                 .priceLevel(restaurant.getPriceLevel())
+                .avgDishPrice(restaurant.getAvgDishPrice())
                 .minReservationSize(restaurant.getMinReservationSize())
                 .maxReservationSize(restaurant.getMaxReservationSize())
                 .coverImageUrl(restaurant.getCoverImageUrl())
@@ -222,6 +236,7 @@ public class RestaurantService {
                 .hasWifi(restaurant.isHasWifi())
                 .hasAirConditioning(restaurant.isHasAirConditioning())
                 .isAccessible(restaurant.isAccessible())
+                .categories(restaurant.getCategories())
                 .avgRating(restaurant.getAvgRating())
                 .totalRatings(restaurant.getTotalRatings())
                 .build();

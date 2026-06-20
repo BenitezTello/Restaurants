@@ -47,6 +47,18 @@ public class ReservationController {
         return ResponseEntity.ok(ApiResponse.ok(reservationService.findByConfirmationCode(code)));
     }
 
+    @PatchMapping("/{id}/special-requests")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Actualizar alergias / preferencias de la reserva")
+    public ResponseEntity<ApiResponse<ReservationResponse>> updateSpecialRequests(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String text = body.getOrDefault("text", "");
+        return ResponseEntity.ok(ApiResponse.ok("Preferencias guardadas",
+                reservationService.updateSpecialRequests(id, text, requesterId(userDetails), isAdmin(userDetails))));
+    }
+
     @GetMapping("/restaurant/{restaurantId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
     @SecurityRequirement(name = "bearerAuth")

@@ -7,12 +7,15 @@ import com.tingo.restaurants.domain.exception.DomainException;
 import com.tingo.restaurants.domain.model.Dish;
 import com.tingo.restaurants.domain.repository.DishRepository;
 import com.tingo.restaurants.domain.repository.MenuRepository;
+import com.tingo.restaurants.infrastructure.persistence.repository.DishJpaRepository;
+import com.tingo.restaurants.infrastructure.persistence.repository.RestaurantJpaRepository;
 import com.tingo.restaurants.infrastructure.security.OwnershipGuard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +30,19 @@ public class DishService {
     private final DishRepository dishRepository;
     private final MenuRepository menuRepository;
     private final OwnershipGuard ownershipGuard;
+    private final DishJpaRepository dishJpaRepository;
+    private final RestaurantJpaRepository restaurantJpaRepository;
+
+    /** Recalcula el precio promedio del menú (platos disponibles) y lo guarda en el restaurante. */
+    @Transactional
+    public void recalcAvgPrice(UUID restaurantId) {
+        if (restaurantId == null) return;
+        BigDecimal avg = dishJpaRepository.avgAvailablePrice(restaurantId);
+        restaurantJpaRepository.findById(restaurantId).ifPresent(r -> {
+            r.setAvgDishPrice(avg);
+            restaurantJpaRepository.save(r);
+        });
+    }
 
     @Transactional
     public DishResponse create(CreateDishRequest request) {
@@ -56,12 +72,24 @@ public class DishService {
                 .build();
 
         Dish saved = dishRepository.save(dish);
+        recalcAvgPrice(menu.getRestaurantId());
         log.info("Plato creado: {} en menú: {}", saved.getName(), request.getMenuId());
         return toResponse(saved);
     }
 
     public List<DishResponse> findByMenu(UUID menuId) {
         return dishRepository.findByMenuId(menuId).stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    /** Platos disponibles de un restaurante (para el pre-pedido al reservar, S10-07). */
+    public List<DishResponse> findAvailableByRestaurant(UUID restaurantId) {
+        return dishJpaRepository.findByRestaurantIdAndDeletedAtIsNull(restaurantId).stream()
+                .filter(com.tingo.restaurants.infrastructure.persistence.entity.DishEntity::isAvailable)
+                .map(d -> DishResponse.builder()
+                        .id(d.getId()).name(d.getName()).description(d.getDescription())
+                        .category(d.getCategory()).price(d.getPrice()).imageUrl(d.getImageUrl())
+                        .isAvailable(d.isAvailable()).build())
+                .collect(Collectors.toList());
     }
 
     public DishResponse findById(UUID dishId) {
@@ -92,6 +120,7 @@ public class DishService {
         if (request.getAllergens() != null) builder.allergens(request.getAllergens());
 
         Dish saved = dishRepository.save(builder.build());
+        recalcAvgPrice(existing.getRestaurantId());
         log.info("Plato actualizado: {}", saved.getId());
         return toResponse(saved);
     }
@@ -108,6 +137,7 @@ public class DishService {
                 .build();
 
         Dish saved = dishRepository.save(toggled);
+        recalcAvgPrice(existing.getRestaurantId());
         log.info("Plato {} disponibilidad cambiada a: {}", saved.getId(), saved.isAvailable());
         return toResponse(saved);
     }
@@ -118,6 +148,7 @@ public class DishService {
                 .orElseThrow(() -> new DomainException("Plato no encontrado", "DISH_NOT_FOUND") {});
         ownershipGuard.assertOwnsRestaurant(existing.getRestaurantId());
         dishRepository.deleteById(id);
+        recalcAvgPrice(existing.getRestaurantId());
     }
 
     private DishResponse toResponse(Dish d) {

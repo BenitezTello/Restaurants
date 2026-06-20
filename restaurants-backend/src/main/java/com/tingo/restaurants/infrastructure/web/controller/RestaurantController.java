@@ -74,11 +74,18 @@ public class RestaurantController {
     public ResponseEntity<ApiResponse<PagedResponse<RestaurantResponse>>> search(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String city,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String priceRange,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
         PageRequest pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(ApiResponse.ok(restaurantService.search(name, city, category, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(restaurantService.search(name, city, categoryId, priceRange, pageable)));
+    }
+
+    @GetMapping("/available-now")
+    @Operation(summary = "IDs de restaurantes abiertos y con mesas libres ahora")
+    public ResponseEntity<ApiResponse<List<UUID>>> availableNow() {
+        return ResponseEntity.ok(ApiResponse.ok(reservationService.availableNowRestaurantIds()));
     }
 
     @GetMapping("/nearby")
