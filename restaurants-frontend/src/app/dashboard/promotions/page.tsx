@@ -1,6 +1,6 @@
 'use client';
 
-import { Tag, Calendar, Plus, Trash2, Loader2, X, AlertCircle, Power, Copy } from 'lucide-react';
+import { Tag, Calendar, Plus, Trash2, Loader2, X, AlertCircle, Power, Copy, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { restaurantService } from '@/services/restaurantService';
@@ -8,6 +8,7 @@ import { useMyRestaurants, useRestaurants } from '@/hooks/useRestaurants';
 import { useAuthStore } from '@/store/authStore';
 import { formatCurrency } from '@/utils/formatters';
 import { RestaurantPicker } from '@/components/ui/RestaurantPicker';
+import { PromoFlyer } from '@/components/ui/PromoFlyer';
 import { SelectMenu } from '@/components/ui/SelectMenu';
 import { cn } from '@/utils/cn';
 import toast from 'react-hot-toast';
@@ -86,6 +87,17 @@ export default function PromotionsPage() {
     },
     onError: () => toast.error('No se pudo cambiar el estado'),
   });
+
+  const genFlyer = useMutation({
+    mutationFn: (id: string) => restaurantService.generatePromotionFlyer(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['promotions', selectedRestaurantId] });
+      toast.success('Flyer generado con IA. Se mostrará en las ofertas del inicio.');
+    },
+    onError: () => toast.error('No se pudo generar el flyer'),
+  });
+
+  const selectedRestaurant = restaurants?.content?.find((r) => r.id === selectedRestaurantId);
 
   // Reutilizar: precarga el formulario con los datos de una promoción (sin las fechas).
   const reusePromo = (p: Promotion) => {
@@ -253,8 +265,24 @@ export default function PromotionsPage() {
                 Hasta {new Date(promo.validUntil).toLocaleDateString('es-PE')}
               </div>
 
+              {/* Vista previa del flyer (si ya tiene copy de IA) */}
+              {promo.flyerHeadline && (
+                <div className="mt-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Flyer para el inicio</p>
+                  <PromoFlyer promo={{ ...promo, restaurantName: selectedRestaurant?.name }} className="h-52" />
+                </div>
+              )}
+
               {/* Acciones */}
-              <div className="mt-4 pt-3 border-t border-gray-50 flex items-center gap-2">
+              <div className="mt-4 pt-3 border-t border-gray-50 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => genFlyer.mutate(promo.id)}
+                  disabled={genFlyer.isPending}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-orange-500 to-selva-500 text-white hover:opacity-90 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {genFlyer.isPending && genFlyer.variables === promo.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {promo.flyerHeadline ? 'Regenerar flyer' : 'Generar flyer'}
+                </button>
                 <button
                   onClick={() => togglePromo.mutate(promo.id)}
                   disabled={togglePromo.isPending}

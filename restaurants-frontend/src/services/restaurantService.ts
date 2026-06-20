@@ -125,6 +125,15 @@ export const restaurantService = {
     return api.delete(`/v1/promotions/${id}`);
   },
 
+  async generatePromotionFlyer(id: string) {
+    return extractData<Promotion>(await api.post(`/v1/promotions/${id}/flyer`));
+  },
+
+  // Ofertas activas (con flyer) de todos los restaurantes, para el carrusel.
+  async getPromotionsShowcase() {
+    return extractData<Promotion[]>(await api.get('/v1/promotions/showcase'));
+  },
+
   // ── Horarios (S2-02) ──────────────────────────────────────────
   async getSchedules(restaurantId: string) {
     return extractData<Schedule[]>(await api.get(`/v1/restaurants/${restaurantId}/schedules`));

@@ -52,7 +52,7 @@ export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: (
         )}
       >
       {/* Logo */}
-      <div className="flex items-center gap-3 p-6 border-b border-gray-700">
+      <div className="flex items-center gap-3 p-4 border-b border-gray-700">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 shadow-lg flex-shrink-0">
           <UtensilsCrossed className="h-6 w-6 text-white" />
         </div>
@@ -70,8 +70,8 @@ export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: (
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+      {/* Nav (solo hace scroll si realmente no entra) */}
+      <nav className="flex-1 min-h-0 overflow-y-auto p-3 space-y-0.5">
         {visible.map((item) => {
           const isActive = item.href === '/dashboard'
             ? pathname === '/dashboard'
@@ -82,7 +82,7 @@ export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: (
               href={item.href}
               data-tour={`nav-${item.labelKey}`}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-orange-500 text-white'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'

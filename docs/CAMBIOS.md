@@ -85,7 +85,24 @@ restaurante) o **rechaza** (con motivo) → correos automáticos en cada paso.
   (restaurante, menús, promociones, **reglas de reserva y pagos**, reservas,
   reportes). Items del sidebar marcados con `data-tour="nav-<clave>"`.
 
+## 4.bis Ofertas con flyer (IA) en la página principal
+
+- **Carrusel de ofertas** en `/restaurants`: muestra las promociones activas de
+  todos los restaurantes como **flyers**, con avance por flechas ◀ ▶ (sin barra
+  de scroll), responsive y dark mode (`components/ui/OffersCarousel.tsx`).
+- **Flyer híbrido:** la **IA (Gemini texto, gratis)** genera el copy (titular +
+  subtítulo) y el **sistema diseña** el flyer (`components/ui/PromoFlyer.tsx`).
+  No se genera ninguna imagen-archivo; solo se guarda el copy en BD.
+- **Botón "Generar flyer"** en el panel de Promociones (con vista previa); si la
+  IA no está disponible, usa el título/descripción como fallback.
+- **Backend:** migración `V22__promotion_flyer.sql` (`flyer_headline`,
+  `flyer_tagline`), `GeminiTextClient`, `PromotionService.generateFlyer/showcase`,
+  endpoints `POST /v1/promotions/{id}/flyer` (dueño) y `GET /v1/promotions/showcase`
+  (público).
+
 ## 5. Otros ajustes
+
+- Sidebar: más compacto; ya no muestra scroll cuando hay espacio suficiente.
 
 - "Reglas de reserva": el botón **Guardar** se activa **solo si hay cambios**
   (estado *dirty*) con aviso "Tienes cambios sin guardar". El selector de

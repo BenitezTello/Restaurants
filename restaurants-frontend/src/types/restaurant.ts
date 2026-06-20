@@ -106,6 +106,11 @@ export interface Promotion {
   isActive: boolean;
   usageLimit?: number;
   usageCount: number;
+  flyerHeadline?: string;
+  flyerTagline?: string;
+  // Solo en el carrusel de ofertas (showcase):
+  restaurantName?: string;
+  restaurantSlug?: string;
 }
 
 export interface RestaurantImage {

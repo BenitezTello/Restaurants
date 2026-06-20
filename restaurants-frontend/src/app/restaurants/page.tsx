@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchRestaurants, useNearbyRestaurants } from '@/hooks/useRestaurants';
 import { restaurantService } from '@/services/restaurantService';
 import { RestaurantCard, RestaurantCardSkeleton } from '@/features/restaurants/RestaurantCard';
+import { OffersCarousel } from '@/components/ui/OffersCarousel';
 import { CategoryModal } from '@/components/ui/CategoryModal';
 import { AnimateOnScroll } from '@/components/ui/AnimateOnScroll';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -351,6 +352,9 @@ export default function RestaurantsPublicPage() {
 
       {/* Contenido */}
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        {/* Carrusel de ofertas (flyers con IA) de todos los restaurantes */}
+        <OffersCarousel />
+
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-sm text-gray-500 hover:text-orange-600 transition-colors">{t('home')}</Link>

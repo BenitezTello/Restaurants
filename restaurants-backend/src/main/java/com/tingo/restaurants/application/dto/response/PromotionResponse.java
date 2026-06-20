@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class PromotionResponse {
     private UUID id;
     private UUID restaurantId;
@@ -27,4 +27,9 @@ public class PromotionResponse {
     private boolean isActive;
     private Integer usageLimit;
     private int usageCount;
+    private String flyerHeadline;
+    private String flyerTagline;
+    // Solo se completan en el carrusel de ofertas (showcase).
+    private String restaurantName;
+    private String restaurantSlug;
 }
