@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UtensilsCrossed, Calendar, User, LogOut, X, Search } from 'lucide-react';
+import { UtensilsCrossed, Calendar, User, LogOut, X, Search, Clock } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -11,6 +11,7 @@ import { cn } from '@/utils/cn';
 const navItems = [
   { href: '/profile',              icon: User,            label: 'Mi Perfil' },
   { href: '/profile/reservations', icon: Calendar,        label: 'Mis Reservas' },
+  { href: '/profile/history',      icon: Clock,           label: 'Mi Historial' },
   { href: '/profile/restaurants',  icon: Search,          label: 'Explorar Restaurantes' },
 ] as const;
 

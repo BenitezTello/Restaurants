@@ -13,6 +13,8 @@ public interface RatingJpaRepository extends JpaRepository<RatingEntity, UUID> {
 
     Page<RatingEntity> findByRestaurantIdOrderByCreatedAtDesc(UUID restaurantId, Pageable pageable);
 
+    Page<RatingEntity> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+
     long countByRestaurantId(UUID restaurantId);
 
     long countByRestaurantIdAndScore(UUID restaurantId, int score);

@@ -13,6 +13,8 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RatingResponse {
     private UUID id;
+    private UUID restaurantId;
+    private String restaurantName;
     private String userName;
     private int score;
     private String comment;
