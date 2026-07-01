@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "Restaurants - RFt1 Evitacion de fallos (ISO 25023)",
+    "description": "Bateria de casos de fallo para medir RFt-1-G. Cada request valida que el sistema responde de forma controlada (status esperado + envelope ApiResponse). Variable de entorno requerida: baseUrl (ej. http://localhost:8080/api).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" }
+  ],
+  "item": [
+    {
+      "name": "RFt1-01 Recurso inexistente (404)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v1/restaurants/00000000-0000-0000-0000-000000000000" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('404 controlado', () => pm.response.code === 404);",
+        "pm.test('envelope ApiResponse', () => pm.response.json().hasOwnProperty('success'));"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-02 Identificador malformado (400)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v1/restaurants/no-es-uuid" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('400 controlado', () => pm.response.code === 400);"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-03 Cuerpo vacio (400)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": "{{baseUrl}}/v1/auth/login"
+      },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('400 validacion', () => pm.response.code === 400);",
+        "pm.test('envelope ApiResponse', () => pm.response.json().hasOwnProperty('success'));"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-04 Formato invalido email (400)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\"email\":\"abc\",\"password\":\"x\"}" },
+        "url": "{{baseUrl}}/v1/auth/login"
+      },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('400 validacion', () => pm.response.code === 400);"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-05 Credenciales incorrectas (401)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\"email\":\"admin@tingo-restaurants.com\",\"password\":\"ClaveMala99!\"}" },
+        "url": "{{baseUrl}}/v1/auth/login"
+      },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('401 controlado', () => pm.response.code === 401);"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-06 Acceso sin autenticacion (401/403)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\"name\":\"X\"}" },
+        "url": "{{baseUrl}}/v1/restaurants"
+      },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('401 o 403', () => [401,403].includes(pm.response.code));"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-07 Token invalido (401/403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer basura.invalida.123" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"name\":\"X\"}" },
+        "url": "{{baseUrl}}/v1/restaurants"
+      },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('401 o 403', () => [401,403].includes(pm.response.code));"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-09 JSON malformado (400)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\"email\":" },
+        "url": "{{baseUrl}}/v1/auth/login"
+      },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('400 controlado', () => pm.response.code === 400);"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-10 Metodo no permitido (405)",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/v1/auth/login" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('405 controlado', () => pm.response.code === 405);"
+      ] } } ]
+    },
+    {
+      "name": "RFt1-11 Ruta inexistente (404)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v1/ruta-que-no-existe" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('404 controlado', () => pm.response.code === 404);"
+      ] } } ]
+    }
+  ]
+}
