@@ -92,6 +92,45 @@ public class EmailService {
                 wrap("Te esperamos " + whenLabel, BRASA, body, "Ver mi reserva", detailLink(r)));
     }
 
+    /** Notificación al cliente cuando su comprobante de pago fue rechazado (S12-06). */
+    @Async
+    public void sendPaymentRejected(Reservation r, java.math.BigDecimal amount, String method, String reason) {
+        if (noEmail(r)) return;
+        String reasonBlock = (reason != null && !reason.isBlank())
+                ? "<p style='margin:8px 0 0;font-size:13px;color:#7F1D1D'>Motivo del rechazo: <strong>" + safe(reason) + "</strong></p>"
+                : "";
+        String body = "<p style='margin:0 0 16px'>Hola, <strong>" + name(r) + "</strong>. "
+                + "El restaurante <strong>" + restaurantName(r) + "</strong> revisó tu comprobante de pago "
+                + "y <strong>no pudo verificarlo</strong>.</p>"
+                + "<div style='margin:8px 0;padding:14px;border-radius:12px;background:#FEF2F2;border:1px solid #FECACA'>"
+                + "<p style='margin:0 0 4px;font-weight:700;color:#991B1B'>Comprobante rechazado</p>"
+                + "<p style='margin:0;font-size:13px;color:#7F1D1D'>Monto: S/ " + amount + " · Método: " + method + "</p>"
+                + "<p style='margin:4px 0 0;font-size:13px;color:#7F1D1D'>Código de reserva: " + r.getConfirmationCode() + "</p>"
+                + reasonBlock
+                + "</div>"
+                + "<p style='margin:16px 0 0;color:#57534E;font-size:14px'>"
+                + "Puedes <strong>volver a subir un comprobante válido</strong> desde tu reserva.</p>";
+        send(r, "Tu comprobante de pago fue rechazado · " + restaurantName(r),
+                wrap("Comprobante no verificado", "#B91C1C", body, "Ver mi reserva", detailLink(r)));
+    }
+
+    /** Notificación al cliente cuando su comprobante de pago fue verificado. */
+    @Async
+    public void sendPaymentVerified(Reservation r, java.math.BigDecimal amount, String method) {
+        if (noEmail(r)) return;
+        String body = "<p style='margin:0 0 16px'>Hola, <strong>" + name(r) + "</strong>. "
+                + "¡Buenas noticias! El restaurante <strong>" + restaurantName(r) + "</strong> ha <strong>verificado exitosamente</strong> tu comprobante de pago.</p>"
+                + "<div style='margin:8px 0;padding:14px;border-radius:12px;background:#F0FDF4;border:1px solid #BBF7D0'>"
+                + "<p style='margin:0 0 4px;font-weight:700;color:#166534'>Pago Verificado</p>"
+                + "<p style='margin:0;font-size:13px;color:#14532D'>Monto: S/ " + amount + " · Método: " + method + "</p>"
+                + "<p style='margin:4px 0 0;font-size:13px;color:#14532D'>Código de reserva: " + r.getConfirmationCode() + "</p>"
+                + "</div>"
+                + "<p style='margin:16px 0 0;color:#57534E;font-size:14px'>"
+                + "Tu reserva está confirmada. ¡Te esperamos!</p>";
+        send(r, "Pago verificado exitosamente · " + restaurantName(r),
+                wrap("Pago verificado", "#16A34A", body, "Ver mi reserva", detailLink(r)));
+    }
+
     // ── Solicitud de cuenta de restaurante ─────────────────────────────────
 
     @Async

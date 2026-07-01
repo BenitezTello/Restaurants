@@ -31,7 +31,7 @@ export const paymentService = {
   async verify(id: string) {
     return extractData<Payment>(await api.patch(`/v1/payments/${id}/verify`));
   },
-  async reject(id: string) {
-    return extractData<Payment>(await api.patch(`/v1/payments/${id}/reject`));
+  async reject(id: string, reason: string) {
+    return extractData<Payment>(await api.patch(`/v1/payments/${id}/reject`, { reason }));
   },
 };

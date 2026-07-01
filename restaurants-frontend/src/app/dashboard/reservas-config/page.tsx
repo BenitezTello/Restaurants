@@ -170,9 +170,9 @@ export default function ReservationConfigPage() {
             {form.requiresAdvancePayment && (
               <div className="space-y-3">
                 <div>
-                  <label className={labelCls}>Instrucciones de pago (cuenta / Yape / Plin)</label>
-                  <textarea rows={3} value={form.paymentInfo ?? ''} onChange={(e) => set('paymentInfo', e.target.value)} placeholder="Ej: Yape al 962 000 000 (a nombre de…) · Cuenta BCP 123-456789-0-12" className={cn(inputCls, 'resize-none')} />
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Se incluyen en el correo de confirmación y en el asistente.</p>
+                  <label className={labelCls}>Instrucciones de pago (estos datos los verá el cliente)</label>
+                  <textarea rows={4} value={form.paymentInfo ?? ''} onChange={(e) => set('paymentInfo', e.target.value)} placeholder={"Yape: 962 000 000 (a nombre de Juan Pérez)\nPlin: 962 000 000 (a nombre de Juan Pérez)\nCuenta BCP: 123-456789-0-12\nCCI: 002-123-456789012-34"} className={cn(inputCls, 'resize-none')} />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Incluye el número de Yape/Plin, cuentas bancarias y el nombre del titular. El cliente verá estos datos al momento de pagar su adelanto.</p>
                 </div>
                 {/* QR de pago */}
                 <div>

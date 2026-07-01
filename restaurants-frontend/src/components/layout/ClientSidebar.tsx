@@ -11,8 +11,9 @@ import { cn } from '@/utils/cn';
 const navItems = [
   { href: '/profile',              icon: User,            label: 'Mi Perfil' },
   { href: '/profile/reservations', icon: Calendar,        label: 'Mis Reservas' },
+  { href: '/profile/search',       icon: Search,          label: 'Buscar Reserva' },
   { href: '/profile/history',      icon: Clock,           label: 'Mi Historial' },
-  { href: '/profile/restaurants',  icon: Search,          label: 'Explorar Restaurantes' },
+  { href: '/profile/restaurants',  icon: UtensilsCrossed, label: 'Explorar Restaurantes' },
 ] as const;
 
 export function ClientSidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {

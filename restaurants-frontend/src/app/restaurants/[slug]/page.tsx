@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
@@ -27,6 +27,7 @@ const LocationMap = dynamic(() => import('@/components/ui/LocationMap'), {
 
 export default function RestaurantDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
   const user = useAuthStore(s => s.user);
   const { data: restaurant, isLoading, error } = useRestaurantBySlug(slug);
   const [reserveOpen, setReserveOpen] = useState(false);
@@ -97,9 +98,9 @@ export default function RestaurantDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
         <div className="absolute top-4 left-4">
-          <Link href="/restaurants" className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium shadow-sm bg-white text-orange-600 hover:bg-orange-50 border border-white/50 dark:bg-white/10 dark:text-white dark:border-white/20 dark:backdrop-blur-md dark:hover:bg-white/20">
+          <button onClick={() => window.history.length > 2 ? router.back() : router.push('/restaurants')} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium shadow-sm bg-white text-orange-600 hover:bg-orange-50 border border-white/50 dark:bg-white/10 dark:text-white dark:border-white/20 dark:backdrop-blur-md dark:hover:bg-white/20 transition-all cursor-pointer">
             <ArrowLeft className="h-4 w-4" /> Volver
-          </Link>
+          </button>
         </div>
 
         <FavoriteButton restaurantId={restaurant.id} className="absolute top-4 right-4 h-10 w-10 z-10" />

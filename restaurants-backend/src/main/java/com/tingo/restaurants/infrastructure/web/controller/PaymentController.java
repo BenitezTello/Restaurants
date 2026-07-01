@@ -56,8 +56,8 @@ public class PaymentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANTE_OWNER')")
     @Operation(summary = "Rechazar un pago (comprobante inválido o pago no recibido)")
     public ResponseEntity<ApiResponse<PaymentResponse>> reject(
-            @PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.ok("Pago rechazado", paymentService.reject(id, uid(userDetails))));
+            @PathVariable UUID id, @Valid @RequestBody com.tingo.restaurants.application.dto.request.PaymentRejectRequest req, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.ok("Pago rechazado", paymentService.reject(id, uid(userDetails), req.getReason())));
     }
 
     @GetMapping("/restaurant/{restaurantId}")

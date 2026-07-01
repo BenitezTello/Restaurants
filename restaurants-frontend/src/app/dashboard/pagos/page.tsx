@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Wallet, Loader2, CheckCircle, XCircle, ExternalLink, Clock } from 'lucide-react';
+import { Wallet, Loader2, CheckCircle, XCircle, Clock, Image as ImageIcon, X } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useMyRestaurants, useRestaurants } from '@/hooks/useRestaurants';
 import { RestaurantPicker } from '@/components/ui/RestaurantPicker';
@@ -33,14 +33,24 @@ export default function PagosPage() {
     onError: () => toast.error('No se pudo verificar el pago'),
   });
   const rejectPay = useMutation({
-    mutationFn: (id: string) => paymentService.reject(id),
-    onSuccess: () => { toast.success('Pago rechazado. La reserva vuelve a quedar pendiente de pago.'); qc.invalidateQueries({ queryKey: ['payments', restaurantId] }); },
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => paymentService.reject(id, reason),
+    onSuccess: () => { 
+      toast.success('Pago rechazado. Se notificó al cliente.'); 
+      setRejectModal(null);
+      qc.invalidateQueries({ queryKey: ['payments', restaurantId] }); 
+    },
     onError: () => toast.error('No se pudo rechazar el pago'),
   });
 
   const busy = verifyPay.isPending || rejectPay.isPending;
   const pending = (payments ?? []).filter((p) => p.status !== 'VERIFIED' && p.status !== 'REJECTED');
   const history = (payments ?? []).filter((p) => p.status === 'VERIFIED' || p.status === 'REJECTED');
+
+  // Modal para ver comprobante inline
+  const [proofModalUrl, setProofModalUrl] = useState<string | null>(null);
+
+  // Modal para motivo de rechazo
+  const [rejectModal, setRejectModal] = useState<{ id: string; reason: string } | null>(null);
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -76,7 +86,7 @@ export default function PagosPage() {
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {pending.map((p) => (
-                  <PaymentRow key={p.id} p={p} busy={busy} onVerify={() => verifyPay.mutate(p.id)} onReject={() => rejectPay.mutate(p.id)} />
+                  <PaymentRow key={p.id} p={p} busy={busy} onVerify={() => verifyPay.mutate(p.id)} onReject={() => setRejectModal({ id: p.id, reason: '' })} onViewProof={setProofModalUrl} />
                 ))}
               </div>
             )}
@@ -88,18 +98,71 @@ export default function PagosPage() {
               <h2 className="font-display text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">Historial</h2>
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {history.map((p) => (
-                  <PaymentRow key={p.id} p={p} busy={busy} />
+                  <PaymentRow key={p.id} p={p} busy={busy} onViewProof={setProofModalUrl} />
                 ))}
               </div>
             </section>
           )}
         </>
       )}
+
+      {/* Modal lightbox para ver comprobante */}
+      {proofModalUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setProofModalUrl(null)}>
+          <div className="relative max-w-2xl w-full max-h-[85vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <h3 className="font-display text-sm font-semibold text-gray-900 dark:text-gray-50 flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-orange-500" /> Comprobante de pago
+              </h3>
+              <button onClick={() => setProofModalUrl(null)} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 flex items-center justify-center overflow-auto max-h-[75vh]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={proofModalUrl} alt="Comprobante de pago" className="max-w-full max-h-[70vh] rounded-xl object-contain" />
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal para motivo de rechazo */}
+      {rejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setRejectModal(null)}>
+          <div className="relative max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-lg font-bold text-gray-900 dark:text-gray-50 flex items-center gap-2 mb-2">
+              <XCircle className="h-5 w-5 text-red-500" /> Rechazar pago
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Indica el motivo por el cual rechazas este comprobante. El cliente recibirá un correo con esta información y podrá volver a intentarlo.
+            </p>
+            <textarea
+              autoFocus
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none mb-4"
+              rows={3}
+              placeholder="Ej: El monto depositado no coincide / La imagen está borrosa / El depósito no figura en la cuenta..."
+              value={rejectModal.reason}
+              onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
+            />
+            <div className="flex items-center gap-3 justify-end">
+              <button onClick={() => setRejectModal(null)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors">
+                Cancelar
+              </button>
+              <button 
+                onClick={() => rejectPay.mutate({ id: rejectModal.id, reason: rejectModal.reason })} 
+                disabled={!rejectModal.reason.trim() || rejectPay.isPending} 
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+              >
+                {rejectPay.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Confirmar rechazo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function PaymentRow({ p, busy, onVerify, onReject }: { p: Payment; busy: boolean; onVerify?: () => void; onReject?: () => void }) {
+function PaymentRow({ p, busy, onVerify, onReject, onViewProof }: { p: Payment; busy: boolean; onVerify?: () => void; onReject?: () => void; onViewProof: (url: string) => void }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
       <div className="min-w-0">
@@ -109,7 +172,7 @@ function PaymentRow({ p, busy, onVerify, onReject }: { p: Payment; busy: boolean
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {p.confirmationCode}
           {p.proofImageUrl && (
-            <> · <a href={p.proofImageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-orange-600 hover:underline">ver comprobante <ExternalLink className="h-3 w-3" /></a></>
+            <> · <button onClick={() => onViewProof(p.proofImageUrl!)} className="inline-flex items-center gap-0.5 text-orange-600 hover:underline"><ImageIcon className="h-3 w-3" /> ver comprobante</button></>
           )}
         </p>
       </div>

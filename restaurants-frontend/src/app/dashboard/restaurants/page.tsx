@@ -158,7 +158,7 @@ export default function RestaurantsPage() {
                   </button>
                 )}
 
-                <Link href={`/restaurants/${r.slug}`} target="_blank"
+                <Link href={`/restaurants/${r.slug}`}
                   className="p-2 rounded-xl text-gray-400 hover:text-orange-500 hover:bg-orange-50 transition-colors" title="Ver página pública">
                   <ExternalLink className="h-4 w-4" />
                 </Link>

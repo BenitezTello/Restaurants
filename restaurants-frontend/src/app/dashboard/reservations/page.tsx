@@ -128,6 +128,24 @@ export default function ReservationsPage() {
     const reservations = restaurantReservations?.content ?? [];
     const isLoading = loadingRestaurant && !!restaurantId;
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+
+    const filteredAndSortedReservations = reservations
+      .filter(res => {
+        if (statusFilter && res.status !== statusFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return (
+            res.customerName?.toLowerCase().includes(q) ||
+            res.confirmationCode.toLowerCase().includes(q) ||
+            res.customerEmail?.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
     return (
       <div>
         <div className="mb-6">
@@ -141,6 +159,31 @@ export default function ReservationsPage() {
           onChange={setRestaurantId}
         />
 
+        {restaurantId && (
+          <div className="mt-4 mb-6 flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              placeholder="Buscar por cliente, correo o código..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white min-w-[160px]"
+            >
+              <option value="">Todos los estados</option>
+              <option value="PENDING">Pendiente</option>
+              <option value="CONFIRMED">Confirmada</option>
+              <option value="ARRIVED">Cliente Llegó</option>
+              <option value="COMPLETED">Completada</option>
+              <option value="CANCELLED">Cancelada</option>
+              <option value="NO_SHOW">No asistió</option>
+            </select>
+          </div>
+        )}
+
         {!restaurantId ? (
           <div className="text-center py-24">
             <Calendar className="h-16 w-16 mx-auto text-gray-200 mb-4" />
@@ -148,15 +191,15 @@ export default function ReservationsPage() {
           </div>
         ) : isLoading ? (
           <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 skeleton rounded-2xl" />)}</div>
-        ) : reservations.length === 0 ? (
+        ) : filteredAndSortedReservations.length === 0 ? (
           <div className="text-center py-24">
             <Calendar className="h-16 w-16 mx-auto text-gray-200 mb-4" />
             <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">Sin reservas</h3>
-            <p className="text-gray-500">Este restaurante aún no tiene reservas</p>
+            <p className="text-gray-500">No se encontraron reservas con esos filtros</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {reservations.map((res) => <ReservationRow key={res.id} res={res} {...rowProps} />)}
+            {filteredAndSortedReservations.map((res) => <ReservationRow key={res.id} res={res} {...rowProps} />)}
           </div>
         )}
 

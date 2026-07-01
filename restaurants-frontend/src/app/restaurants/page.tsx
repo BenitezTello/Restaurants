@@ -126,13 +126,27 @@ export default function RestaurantsPublicPage() {
       return;
     }
     setGeo({ status: 'loading' });
+    
+    // Función para manejar el éxito
+    const handleSuccess = (lat: number, lon: number) => {
+      setGeo({ status: 'ready', lat, lon });
+      setSearch('');
+      setCity('');
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeo({ status: 'ready', lat: pos.coords.latitude, lon: pos.coords.longitude });
-        setSearch('');
-        setCity('');
+      (pos) => handleSuccess(pos.coords.latitude, pos.coords.longitude),
+      (err) => {
+        console.warn("Geolocation failed:", err);
+        // Si estamos en desarrollo o falla la ubicación real, ofrecemos simular Tingo María para que el usuario pueda probar
+        if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+          console.log("Simulando ubicación en Tingo María para pruebas...");
+          handleSuccess(-9.297, -75.998); // Coordenadas céntricas de Tingo María
+        } else {
+          setGeo({ status: 'error', message: 'No se pudo obtener tu ubicación. Verifica los permisos del navegador.' });
+        }
       },
-      () => setGeo({ status: 'error', message: 'No se pudo obtener tu ubicación. Verifica los permisos del navegador.' })
+      { timeout: 5000 }
     );
   };
 
@@ -363,6 +377,7 @@ export default function RestaurantsPublicPage() {
               {isNearbyMode ? t('nearbyRestaurants') : t('restaurants')}
             </span>
           </div>
+
           <div className="flex items-center gap-3">
             <p className="text-sm text-gray-500">
               {restaurants.length} {t('restaurantsFound')}
@@ -399,9 +414,23 @@ export default function RestaurantsPublicPage() {
             </h3>
             <p className="text-gray-500 mb-6">
               {isNearbyMode
-                ? 'No hay restaurantes activos en un radio de 5 km de tu ubicación'
+                ? 'No hay restaurantes activos en un radio de 5 km de tu ubicación actual.'
                 : 'No se encontraron restaurantes con los filtros aplicados'}
             </p>
+            
+            {isNearbyMode && (process.env.NODE_ENV === 'development' || typeof window !== 'undefined' && window.location.hostname === 'localhost') && (
+              <div className="mb-6">
+                <button
+                  onClick={() => {
+                    setGeo({ status: 'ready', lat: -9.297, lon: -75.998 });
+                  }}
+                  className="px-6 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-medium hover:bg-orange-200 transition-colors"
+                >
+                  Simular ubicación en Tingo María (Dev Mode)
+                </button>
+              </div>
+            )}
+            
             {(search || city || isNearbyMode || topRatedFilter || openNowFilter || selectedCategories.length > 0 || priceRange || favoritesOnly) && (
               <button
                 onClick={() => { setSearch(''); setCity(''); setPage(0); clearNearby(); setTopRatedFilter(false); setOpenNowFilter(false); setSelectedCategories([]); setPriceRange(''); setFavoritesOnly(false); }}

@@ -26,6 +26,7 @@ public class PaymentService {
     private final ReservationJpaRepository reservationRepository;
     private final OwnershipGuard ownershipGuard;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     @Transactional
     public PaymentResponse submitProof(PaymentProofRequest req, UUID customerId, boolean isAdmin) {
@@ -70,12 +71,27 @@ public class PaymentService {
         if (reservation != null) {
             reservation.setPaymentStatus("PAYMENT_VERIFIED");
             reservationRepository.save(reservation);
+
+            // Notificar al cliente por email que su comprobante fue verificado
+            com.tingo.restaurants.domain.model.Reservation domainRes =
+                    com.tingo.restaurants.domain.model.Reservation.builder()
+                            .id(reservation.getId())
+                            .restaurantId(reservation.getRestaurantId())
+                            .customerName(reservation.getCustomerName())
+                            .customerEmail(reservation.getCustomerEmail())
+                            .confirmationCode(reservation.getConfirmationCode())
+                            .reservationDate(reservation.getReservationDate())
+                            .startTime(reservation.getStartTime())
+                            .partySize(reservation.getPartySize())
+                            .advanceAmount(reservation.getAdvanceAmount())
+                            .build();
+            emailService.sendPaymentVerified(domainRes, payment.getAmount(), payment.getMethod());
         }
         return toResponse(payment, reservation);
     }
 
     @Transactional
-    public PaymentResponse reject(UUID paymentId, UUID verifierId) {
+    public PaymentResponse reject(UUID paymentId, UUID verifierId, String reason) {
         PaymentEntity payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Pago no encontrado"));
         ownershipGuard.assertOwnsRestaurant(payment.getRestaurantId());
@@ -85,7 +101,7 @@ public class PaymentService {
         payment.setVerifiedBy(verifierId);
         paymentRepository.save(payment);
         auditLogService.record("PAYMENT", payment.getId(), "REJECT_PAYMENT", verifierId,
-                "Monto: S/ " + payment.getAmount() + " · Método: " + payment.getMethod());
+                "Monto: S/ " + payment.getAmount() + " · Método: " + payment.getMethod() + " · Motivo: " + reason);
 
         // El comprobante no es válido / no llegó el pago: la reserva vuelve a
         // quedar pendiente de pago para que el cliente pueda reintentar.
@@ -93,6 +109,21 @@ public class PaymentService {
         if (reservation != null) {
             reservation.setPaymentStatus("PENDING_PAYMENT");
             reservationRepository.save(reservation);
+
+            // Notificar al cliente por email que su comprobante fue rechazado.
+            com.tingo.restaurants.domain.model.Reservation domainRes =
+                    com.tingo.restaurants.domain.model.Reservation.builder()
+                            .id(reservation.getId())
+                            .restaurantId(reservation.getRestaurantId())
+                            .customerName(reservation.getCustomerName())
+                            .customerEmail(reservation.getCustomerEmail())
+                            .confirmationCode(reservation.getConfirmationCode())
+                            .reservationDate(reservation.getReservationDate())
+                            .startTime(reservation.getStartTime())
+                            .partySize(reservation.getPartySize())
+                            .advanceAmount(reservation.getAdvanceAmount())
+                            .build();
+            emailService.sendPaymentRejected(domainRes, payment.getAmount(), payment.getMethod(), reason);
         }
         return toResponse(payment, reservation);
     }

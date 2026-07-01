@@ -73,9 +73,9 @@ export default function RestaurantDetailDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/restaurants/${restaurant.slug}`} target="_blank"
+          <Link href={`/restaurants/${restaurant.slug}`}
             className="px-4 py-2 border border-gray-200 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
-            Ver página pública ↗
+            Ver página pública
           </Link>
           <Link href={`/dashboard/restaurants/${id}/edit`}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors">
